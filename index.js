@@ -1,55 +1,41 @@
-// console.log('I see you')
-
-import express from 'express';
+import { userRouter, express } from "./controller/UserController.js";
+import { productRouter } from "./controller/ProductController.js";
+import { config } from "dotenv";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import path from 'path'
+import { errorHandling } from "./middleware/ErrorHandling.js";
+config()
 
-// create an express app
 const app = express()
-const router = express.Router()
+const port = +process.env.POST || 5500
+
+//Middleware
+app.use((req, res, next)=> {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "*");
+    res.header("Access-Control-Request-Methods", "*");
+    res.header("Access-Control-Allow-Headers", "*");
+    res.header("Access-Control-Expose-Headers", "Authorization");
+    next();
+})
 app.use(
-    router,
-    express.static('./static'));
-
-const port = +process.env.PORT || 5000
-
-// Routers: express
-router.get('^/$|/express', display, (req, res)=> {
-    res.status(200).sendFile(path.resolve('./static/index.html'))
+    express.static('./static'),
+    express.json(),
+    express.urlencoded({
+        extended: true,
+    }),
+    cookieParser(),
+    cors()
+)
+app.get('^/$|/lifechoices', (req, res)=> {
+    res.status(200).sendFile(path.join(__dirname, './static/index.html'))
 })
 
-// Router
-// app.get('/', (req, res)=> {
-//     res.status(200).json({
-//         msg: "You're welcome!!!"
-//     })
-// })
-
-// app.get('/', display, (req, res)=> {
-//     res.json({
-//         status: res.statusCode,
-//         msg: 'You are getting there!'
-//     })
-// })
-
-// app.get('*', (req, res)=> {
-//     res.json({
-//         status: 404,
-//         msg: '404 page'
-//     })
-// })
-// app.listen(port)
-
-// Middleware
-router.get('^/$|/express', display, (req, res)=> {
-    res.json({
-        status: res.statusCode,
-        msg: 'You are getting there!'
-    })
+app.use('/Users', userRouter)
+app.use('/Products', productRouter)
+app.use(errorHandling)
+app.listen(port, ()=>{
+    console.log(`Server is running at port ${port}`)
 })
-
-function display(req, res, next) {
-    console.log("Hello there!");
-    next()
-}
-
-app.listen(port)
