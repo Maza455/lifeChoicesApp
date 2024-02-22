@@ -18,7 +18,7 @@ class Users {
         FROM Users;
         `
         db.query(qry, (err, results) => {
-            if (err) throw err
+            if(err) throw err
             res.json({
                 status: res.statusCode,
                 results
@@ -33,8 +33,8 @@ class Users {
         FROM Users
         WHERE userID = ${req.params.id};
     `
-        db.query(qry, (err, result) => {
-            if (err) throw err
+        db.query(qry, (err, result)=> {
+            if(err) throw err
             res.json({
                 status: res.statusCode,
                 result
@@ -44,8 +44,10 @@ class Users {
     async createUser(req, res) {
         // Payload
         let data = req.body;
-        if (data.userPwd) {
-            data.userPwd = await hash(data.userPwd, 10);
+        data.userPwd = await hash(data.userPwd, 10);
+        let user = {
+            emailAdd: data.emailAdd,
+            userPwd: data.userPwd
         }
         const qry = `
         INSERT INTO Users
@@ -59,8 +61,9 @@ class Users {
                     msg: 'Internal server error'
                 });
             } else {
+                let token = createToken(user);
                 res.json({
-                    status: res.statusCode,
+                    status: res.statusCode, token,
                     msg: 'You\'re registered.'
                 });
             }
